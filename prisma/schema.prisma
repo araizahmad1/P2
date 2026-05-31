@@ -1,0 +1,74 @@
+// ═══════════════════════════════════════════════
+// DecodeLabs P3 — Prisma Schema
+// Database: Neon PostgreSQL
+// ═══════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── USERS TABLE ──────────────────────────────
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  role      Role      @default(INTERN)
+  bio       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relationship — ek user ke multiple posts
+  posts     Post[]
+
+  @@map("users")  // table ka naam database mein
+}
+
+// ── ROLE ENUM ────────────────────────────────
+enum Role {
+  ADMIN
+  MENTOR
+  INTERN
+}
+
+// ── POSTS TABLE ──────────────────────────────
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  published Boolean  @default(false)
+  tags      String[] // PostgreSQL array
+
+  // Foreign Key — Post ka author
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("posts")
+}
+
+// ── CONTACTS TABLE ───────────────────────────
+model Contact {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+
+  @@map("contacts")
+}
+
+// ── CONTACT STATUS ENUM ──────────────────────
+enum ContactStatus {
+  UNREAD
+  READ
+  REPLIED
+}
